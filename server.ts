@@ -1,16 +1,16 @@
 import express, { Request, Response } from 'express';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import path from 'path';
 import mysql, { Pool, Connection } from 'mysql2/promise';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const distPath = import.meta.dirname;
+const appPath = path.dirname(distPath);
+const publicPath = path.join(appPath, 'public');
 
 const app = express();
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
 
 // Serve static files from public directory
-app.use(express.static(join(__dirname, 'public')));
+app.use(express.static(publicPath));
 
 // Database configuration
 interface DbConfig {
@@ -78,7 +78,7 @@ app.get('/api/test', async (req: Request, res: Response): Promise<void> => {
 
 // Serve the main HTML page
 app.get('/', (req: Request, res: Response): void => {
-  res.sendFile(join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 // Initialize database and start server
@@ -88,4 +88,3 @@ initDatabase().then(() => {
     console.log(`Make sure MySQL is running for database features`);
   });
 });
-
