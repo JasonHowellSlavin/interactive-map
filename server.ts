@@ -12,7 +12,6 @@ const PORT: number = parseInt(process.env.PORT || '3000', 10);
 // Serve static files from public directory
 app.use(express.static(publicPath));
 
-// Database configuration
 interface DbConfig {
   host: string;
   user: string;
@@ -81,10 +80,9 @@ app.get('/', (req: Request, res: Response): void => {
   res.sendFile(path.join(publicPath, 'index.html'));
 });
 
-// Initialize database and start server
+// Start
 initDatabase().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`Make sure MySQL is running for database features`);
   });
 });
