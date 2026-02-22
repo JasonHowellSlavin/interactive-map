@@ -29,10 +29,7 @@ const dbConfig: DbConfig = {
   database: 'boilerplate_db',
 };
 
-// Create connection pool
-let pool: Pool | undefined;
-
-async function initDatabase(): Promise<void> {
+async function initDatabase(): Promise<Pool> {
   try {
     // First, connect without specifying database to create it if needed
     const connection: Connection = await mysql.createConnection({
@@ -44,29 +41,22 @@ async function initDatabase(): Promise<void> {
     await connection.query(`CREATE DATABASE IF NOT EXISTS ${dbConfig.database}`);
     await connection.end();
 
-    // Now create pool with database
-    pool = mysql.createPool({
+    return mysql.createPool({
       ...dbConfig,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
     });
-
-    console.log('Database connection pool created');
   } catch (error) {
-    const err = error as Error;
-    console.error('Database initialization error:', err.message);
-    console.log('Make sure MySQL is running and credentials are correct');
+    throw new Error('Database initialization failed', { cause: error });
   }
 }
+
+const pool: Pool = await initDatabase();
 
 // API route example
 app.get('/api/test', async (req: Request, res: Response): Promise<void> => {
   try {
-    if (!pool) {
-      res.status(500).json({ error: 'Database not initialized' });
-      return;
-    }
     const [rows] = await pool.query('SELECT 1 as test');
     res.json({ message: 'Database connection successful', data: rows });
   } catch (error) {
@@ -81,8 +71,6 @@ app.get('/', (req: Request, res: Response): void => {
 });
 
 // Start
-initDatabase().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-  });
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });
